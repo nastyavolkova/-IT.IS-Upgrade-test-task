@@ -1,0 +1,214 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <link href="style.css" rel="stylesheet">
+        <link href="https://img.icons8.com/office/80/000000/prawn.png" rel="icon">
+        <meta name="viewport" content="width=device-width, height=device-hei" charset="utf-8">
+        <script src="https://www.gstatic.com/charts/loader.js"></script>
+        <title>Аналитические отчеты</title>
+    </head>
+
+    <body class="body">
+       
+        <header>
+            <p class="header">Выберите интересующий Вас вопрос</p>
+        </header>
+        <main>
+
+            <form action="reports.php" method="post">
+
+                <div class="report">
+                    <label>
+                        <input type="radio" name="report" value="report1">
+                        Посетители из какой страны совершают больше всего действий на сайте?
+                    </label>
+                </div>
+
+                <div class="report">
+                    <label>
+                        <input type="radio" name="report" value="report2">
+                        Посетители из какой страны чаще интересуются товарами из выбранной категории?
+                    </label>
+                    <div class="block">
+                        <select name="categories" class="block_text">
+                            <option disabled>Выберите категорию товара</option>
+                            <option value="fresh_fish" class="block_text">Свежая рыба</option>
+                            <option value="canned_food">Консервированные продукты</option>
+                            <option value="semi_manufactures">Полуфабрикаты</option>
+                            <option value="caviar">Икра</option>
+                            <option value="frozen_fish">Замороженная рыба</option>
+                        </select>
+                    </div>
+                </div>
+               
+                <div class="report">
+                    <label>
+                        <input type="radio" name="report" value="report3">
+                        Сколько неоплаченных корзин имеется за выбранный период?
+                    
+                    </label>
+                
+                    <div class="block">
+                        <input class="block_text" type="date" name="date1" min="2018-08-01" max="2018-08-14">
+                        <input class="block_text" type="time" name="time1">
+                        -
+                        <input class="block_text" type="date" name="date2" min="2018-08-01" max="2018-08-14">
+                        <input class="block_text" type="time" name="time2">
+                    </div>
+                    
+                </div>
+                <input type="submit" value="Сформировать отчет" class="button">
+                
+            </form>
+            <div id="text" class="num"></div>
+            <div id="text2" class="answer"></div>
+            <div id="piechart1" class="pie"></div>
+            <div id="piechart2" class="pie"></div>
+                
+        </main>
+
+    </body>
+    
+    <script>
+        document.querySelector('form').addEventListener('submit', function(event) {
+            console.log('Форма заполнена');
+            event.preventDefault();
+            const form = new FormData();
+            if (!document.getElementsByName('report').item(0).checked & !document.getElementsByName('report').item(1).checked
+                & !document.getElementsByName('report').item(2).checked){
+                    document.getElementById('a').style.display = 'block';
+            }
+            
+            if (document.getElementsByName('report').item(0).checked) {
+                
+                value = document.getElementsByName('report').item(0).value;
+                form.append('type', 'report1');
+            }
+            
+            else if (document.getElementsByName('report').item(1).checked) {
+
+                var categories = document.getElementsByName('categories').item(0).value;
+                value = document.getElementsByName('report').item(1).value;
+                console.log(categories);
+                form.append('type', 'report2');
+                form.append('category', categories);
+
+            }
+            else if (document.getElementsByName('report').item(2).checked) {
+
+                value = document.getElementsByName('report').item(2).value;
+
+                var date1= document.getElementsByName('date1').item(0).value;
+                var time1= document.getElementsByName('time1').item(0).value;
+                var date2= document.getElementsByName('date2').item(0).value;
+                var time2= document.getElementsByName('time2').item(0).value;
+        
+                form.append('date1', date1);
+                form.append('time1', time1);
+                form.append('date2', date2);
+                form.append('time2', time2);
+
+                form.append('type', value);
+
+            }
+        
+            fetch('./reports.php', {
+                method: 'POST',
+                body: form
+            }).then(function (response) {
+                return response.json();
+            }, function () {}).then(function (response) {
+
+               if (value === 'report1') {
+                
+                document.getElementById("piechart1").style.display = 'block';
+
+                google.charts.load('current', {
+                    callback: drawChart,
+                    packages: ['corechart']
+                });
+                function drawChart() {
+
+                    var data = new google.visualization.DataTable();
+                    data.addColumn('string', 'Country');
+                    data.addColumn('number', 'Action');
+
+                    data.addRows(response);
+                    var options = {
+                    title: '10 наиболее активных стран',
+                    is3D: true,
+                    pieResidueSliceLabel: 'Other countries',
+                    backgroundColor: '#FFF0F5',
+                    titleTextStyle:{fontSize: 25}
+                    };
+                    var chart = new google.visualization.PieChart(document.getElementById('piechart1'));
+                    chart.draw(data, options);
+                    
+                }
+
+                } else if (value === 'report2') {
+                    document.getElementById("piechart2").style.display = 'block';
+
+                    if(categories = 'fresh_fish'){
+                        category_name = '"Свежая рыба"';
+                    }
+                    else if(categories = 'canned_food'){
+                        category_name = '"Консервированные продукты"';
+                    }
+                    else if(categories = '"semi_manufactures'){
+                        category_name = '"Полуфабрикаты"';
+                    }
+                    else if(categories = 'caviar'){
+                        category_name = '"Икра"';
+                    }
+                    else if(categories = 'frozen_fish'){
+                        category_name = '"Замороженная рыба"';
+                    }
+                    google.charts.load('current', {
+                    callback: drawChart,
+                    packages: ['corechart']
+                });
+                function drawChart() {
+
+                    var data = new google.visualization.DataTable();
+                    data.addColumn('string', 'Country');
+                    data.addColumn('number', 'Action');
+
+                    data.addRows(response);
+                    var options = {
+                    title: ("10 наиболее активных стран в категории  "+ category_name),
+                    is3D: true,
+                    pieResidueSliceLabel: 'Other countries',
+                    backgroundColor: '#FFF0F5',
+                    titleTextStyle:{fontSize: 25}
+                   
+                    };
+                    var chart = new google.visualization.PieChart(document.getElementById('piechart2'));
+                    chart.draw(data, options);
+                }
+                }
+                else if(value === 'report3'){
+                    document.getElementById("text").style.display = 'block';
+                    document.getElementById("text2").style.display = 'block';
+                    let cart;
+                    let last_num = response % 10;
+                    if(last_num === 1 & response !== 11){
+                        cart = " корзина";
+                    }
+                    else if((last_num === 2 || last_num === 3 || last_num === 4) & response !== 12 & response !== 13 & response !== 14){
+                        cart = " корзины";
+                    } else {
+                        cart = " корзин";
+                    }
+
+                    document.querySelector('#text').innerHTML = response;
+                    document.getElementById('text2').innerHTML=cart + " было неоплачено за выбранный период";
+
+                }
+                
+            });
+        });
+    </script> 
+
+</html>
